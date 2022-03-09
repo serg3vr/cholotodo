@@ -5,10 +5,12 @@ class TodoItem extends StatelessWidget {
   TodoItem({
     required this.todo,
     required this.onTodoChanged,
+    required this.onTodoLongPress,
   }) : super(key: ObjectKey(todo));
 
   final Todo todo;
   final onTodoChanged;
+  final onTodoLongPress;
 
   TextStyle? _getTextStyle(bool checked) {
     if (!checked) return null;
@@ -24,6 +26,9 @@ class TodoItem extends StatelessWidget {
     return ListTile(
       onTap: () {
         onTodoChanged(todo);
+      },
+      onLongPress: () {
+        onTodoLongPress(todo);
       },
       leading: CircleAvatar(
         child: Text(todo.name[0]),

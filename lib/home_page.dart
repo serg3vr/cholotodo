@@ -16,6 +16,9 @@ class _MyHomePageState extends State<MyHomePage> {
   final List<Todo> _todos = <Todo>[];
 
   void _addRandomItem() {
+    if (controlador.text.isEmpty) {
+      return;
+    }
     setState(() {
       String text = controlador.text;
       _todos.add(Todo(name: text, checked: false));
@@ -34,7 +37,7 @@ class _MyHomePageState extends State<MyHomePage> {
           Center(
             child: TextField(
               controller: controlador,
-              decoration: const InputDecoration(hintText: 'Enter task here'),
+              decoration: const InputDecoration(hintText: 'Ingrese el título'),
             ),
           ),
           Expanded(
@@ -43,7 +46,6 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        // heroTag: "button1",
         onPressed: _addRandomItem,
         tooltip: 'Increment',
         child: const Icon(Icons.add),
@@ -56,7 +58,8 @@ class _MyHomePageState extends State<MyHomePage> {
       children: _todos.map((Todo todo) {
         return TodoItem(
           todo: todo,
-          onTodoChanged: _handleTodoChange
+          onTodoChanged: _handleTodoChange,
+          onTodoLongPress: _handleTodoLongPress,
         );
       }).toList(),
     );
@@ -67,6 +70,40 @@ class _MyHomePageState extends State<MyHomePage> {
       todo.checked = !todo.checked;
     });
   }
+
+  void _handleTodoLongPress(Todo todo) {
+    _showAlertDialog(todo);
+  }
+
+  void _showAlertDialog(Todo todo) {  // set up the buttons
+    Widget cancelButton = TextButton(
+      child: Text("Cancel"),
+      onPressed:  () {
+         Navigator.of(context).pop();
+      },
+    );
+    Widget continueButton = TextButton(
+      child: Text("Continue"),
+      onPressed:  () {
+        setState(() {
+          _todos.remove(todo);
+        });
+        Navigator.of(context).pop();
+      },
+    );  // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      title: Text("AlertDialog"),
+      content: Text("Would you like to continue learning how to use Flutter alerts?"),
+      actions: [
+        cancelButton,
+        continueButton,
+      ],
+    );  // show the dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
 }
-
-
