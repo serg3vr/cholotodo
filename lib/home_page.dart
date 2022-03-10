@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:cholotodo/todo.dart';
 import 'package:cholotodo/todo_item.dart';
 import 'package:flutter/material.dart';
@@ -14,20 +17,54 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   TextEditingController controlador = TextEditingController();
   final List<Todo> _todos = <Todo>[];
+  int itemIndex = -1;
+  bool isEditing = false;
 
   void _addRandomItem() {
     if (controlador.text.isEmpty) {
       return;
     }
     setState(() {
-      String text = controlador.text;
-      _todos.add(Todo(name: text, checked: false));
+      String name = controlador.text;
+      var rng = Random();
+      int idx = rng.nextInt(10000);
+      _todos.add(Todo(id: idx, name: name, checked: false));
     });
+
     controlador.clear();
+  }
+
+  void _editSelectedItem() {
+    if (controlador.text.isEmpty) {
+      return;
+    }
+    
+    if (itemIndex > -1) {
+      String name = controlador.text;
+      Todo todo = _todos[itemIndex];
+      todo.name = name;
+      setState(() {
+        _todos[itemIndex] = todo;
+      });
+      itemIndex = -1;
+      isEditing = false;
+      controlador.clear();
+    }
+
   }
 
   @override
   Widget build(BuildContext context) {
+    FloatingActionButton addNewButton = FloatingActionButton(
+      onPressed: _addRandomItem,
+      tooltip: 'Increment',
+      child: const Icon(Icons.add),
+    );
+    FloatingActionButton editExisButton = FloatingActionButton(
+      onPressed: _editSelectedItem,
+      tooltip: 'Increment',
+      child: const Icon(Icons.add),
+    );
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
@@ -37,7 +74,10 @@ class _MyHomePageState extends State<MyHomePage> {
           Center(
             child: TextField(
               controller: controlador,
-              decoration: const InputDecoration(hintText: 'Ingrese el título'),
+              decoration: const InputDecoration(
+                hintText: 'Ingrese el título',
+                contentPadding: EdgeInsets.all(8.0)
+              ),
             ),
           ),
           Expanded(
@@ -45,21 +85,19 @@ class _MyHomePageState extends State<MyHomePage> {
           )
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _addRandomItem,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: isEditing ? editExisButton : addNewButton,
     );
   }
 
   Widget _myListView(BuildContext context) {
     return ListView(
-      children: _todos.map((Todo todo) {
+      children: _todos.map((Todo todo, ) {
+
         return TodoItem(
           todo: todo,
           onTodoChanged: _handleTodoChange,
           onTodoLongPress: _handleTodoLongPress,
+          onTrailIconPressed: _onTrailIconPressed,
         );
       }).toList(),
     );
@@ -105,5 +143,13 @@ class _MyHomePageState extends State<MyHomePage> {
         return alert;
       },
     );
+  }
+
+  void _onTrailIconPressed(Todo todo) {
+    setState(() {
+      isEditing = true;
+      itemIndex = _todos.indexOf(todo);
+      controlador.text = todo.name;
+    });
   }
 }

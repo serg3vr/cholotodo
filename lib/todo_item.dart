@@ -6,11 +6,13 @@ class TodoItem extends StatelessWidget {
     required this.todo,
     required this.onTodoChanged,
     required this.onTodoLongPress,
+    required this.onTrailIconPressed,
   }) : super(key: ObjectKey(todo));
 
   final Todo todo;
   final onTodoChanged;
   final onTodoLongPress;
+  final onTrailIconPressed;
 
   TextStyle? _getTextStyle(bool checked) {
     if (!checked) return null;
@@ -34,6 +36,14 @@ class TodoItem extends StatelessWidget {
         child: Text(todo.name[0]),
       ),
       title: Text(todo.name, style: _getTextStyle(todo.checked)),
+      trailing: CircleAvatar(
+        child: IconButton(
+          icon: Icon(Icons.edit),
+          onPressed: () {
+            onTrailIconPressed(todo);
+          },
+        ),
+      ),
     );
   }
 }
