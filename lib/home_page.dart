@@ -18,7 +18,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   TextEditingController controlador = TextEditingController();
   final List<Todo> _todos = <Todo>[];
-  int itemIndex = -1;
+  String itemDocId = '';
   bool isEditing = false;
   final _fireStore = FirebaseFirestore.instance;
 
@@ -26,19 +26,18 @@ class _MyHomePageState extends State<MyHomePage> {
     if (controlador.text.isEmpty) {
       return;
     }
-    // setState(() {
-    //   String name = controlador.text;
-    //   var rng = Random();
-    //   int idx = rng.nextInt(10000);
-    //   _todos.add(Todo(id: idx, name: name, checked: false));
-    // });
 
     _fireStore.collection('items').add({
       'title': controlador.text,
-      'descripcion': controlador.text
+      'descripcion': controlador.text,
+      'timestamp': Timestamp.now()
     });
 
     controlador.clear();
+  }
+
+  void _deleteItem(String documentId) {
+    _fireStore.collection('items').doc(documentId).delete();
   }
 
   void _editSelectedItem() {
@@ -46,14 +45,16 @@ class _MyHomePageState extends State<MyHomePage> {
       return;
     }
     
-    if (itemIndex > -1) {
-      String name = controlador.text;
-      Todo todo = _todos[itemIndex];
-      todo.name = name;
-      setState(() {
-        _todos[itemIndex] = todo;
+    if (itemDocId.isNotEmpty) {
+      String title = controlador.text;
+      Map<String, Object> asd = {
+        'title': title,
+        'descripcion': title,
+      };
+      _fireStore.collection('items').doc(itemDocId).update(asd).then((value) {
+        itemDocId = '';
       });
-      itemIndex = -1;
+
       isEditing = false;
       controlador.clear();
     }
@@ -98,20 +99,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return CircularProgressIndicator();
                 }
-                final List list = snapshot.data?.docs ?? [];
-                return ListView.builder(
-                  itemBuilder: (context, index) {
-                    if (index > 0) {
-                      return ListTile(
-                        title: Text(list[index]['title']),
-                        subtitle: Text(list[index]['descripcion']),
-                      );
-                    }
-                    return ListTile(
-                      title: Text('Nada')
-                    );
-                  }
-                );
+                
+                final List<QueryDocumentSnapshot> list = snapshot.data?.docs ?? [];
+                return _myList(list);
               }
             )
           )
@@ -121,31 +111,43 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget _myListView(BuildContext context) {
-    return ListView(
-      children: _todos.map((Todo todo, ) {
-
-        return TodoItem(
-          todo: todo,
-          onTodoChanged: _handleTodoChange,
-          onTodoLongPress: _handleTodoLongPress,
-          onTrailIconPressed: _onTrailIconPressed,
+  ListView _myList(List<dynamic> list) {
+    return ListView.builder(
+      itemCount: list.length,
+      itemBuilder: (context, index) {
+        final QueryDocumentSnapshot item = list[index];
+        
+        String date = '';
+        bool containsData = (item.data() as Map<String,dynamic>).containsKey('timestamp');
+        if (containsData) {
+          date = item['timestamp'].toString();
+        } else {
+          date = '';
+        }
+        
+        String docId = item.id;
+        return ListTile(
+          title: Text(item['title']),
+          subtitle: Text(date),
+          onLongPress: () {
+            _showAlertDialog(docId);
+          },
+          trailing: CircleAvatar(
+            child: IconButton(
+              icon: Icon(Icons.edit),
+              onPressed: () {
+                _onTrailIconPressed(item);
+              },
+            ),
+          ),
         );
-      }).toList(),
+      }
     );
   }
 
-  void _handleTodoChange(Todo todo) {
-    setState(() {
-      todo.checked = !todo.checked;
-    });
-  }
 
-  void _handleTodoLongPress(Todo todo) {
-    _showAlertDialog(todo);
-  }
-
-  void _showAlertDialog(Todo todo) {  // set up the buttons
+  // TODO -  Convertir funcion en asincrona y esperar verdad o falso para continua operacion
+  void _showAlertDialog(String documentId) {  // set up the buttons
     Widget cancelButton = TextButton(
       child: Text("Cancel"),
       onPressed:  () {
@@ -155,9 +157,7 @@ class _MyHomePageState extends State<MyHomePage> {
     Widget continueButton = TextButton(
       child: Text("Continue"),
       onPressed:  () {
-        setState(() {
-          _todos.remove(todo);
-        });
+        _deleteItem(documentId);
         Navigator.of(context).pop();
       },
     );  // set up the AlertDialog
@@ -177,11 +177,11 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _onTrailIconPressed(Todo todo) {
-    setState(() {
+  void _onTrailIconPressed(QueryDocumentSnapshot item) {
       isEditing = true;
-      itemIndex = _todos.indexOf(todo);
-      controlador.text = todo.name;
-    });
+      itemDocId = item.id;
+      setState(() {
+        controlador.text = item['title'];
+      });
   }
 }
