@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:cholotodo/todo.dart';
 import 'package:cholotodo/todo_item.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -19,16 +20,22 @@ class _MyHomePageState extends State<MyHomePage> {
   final List<Todo> _todos = <Todo>[];
   int itemIndex = -1;
   bool isEditing = false;
+  final _fireStore = FirebaseFirestore.instance;
 
   void _addRandomItem() {
     if (controlador.text.isEmpty) {
       return;
     }
-    setState(() {
-      String name = controlador.text;
-      var rng = Random();
-      int idx = rng.nextInt(10000);
-      _todos.add(Todo(id: idx, name: name, checked: false));
+    // setState(() {
+    //   String name = controlador.text;
+    //   var rng = Random();
+    //   int idx = rng.nextInt(10000);
+    //   _todos.add(Todo(id: idx, name: name, checked: false));
+    // });
+
+    _fireStore.collection('items').add({
+      'title': controlador.text,
+      'descripcion': controlador.text
     });
 
     controlador.clear();
@@ -81,7 +88,32 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
           Expanded(
-            child: _myListView(context),
+            // child: _myListView(context),
+            child: StreamBuilder<QuerySnapshot>(
+              stream: _fireStore.collection('items').snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Text('Has errors');
+                }
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return CircularProgressIndicator();
+                }
+                final List list = snapshot.data?.docs ?? [];
+                return ListView.builder(
+                  itemBuilder: (context, index) {
+                    if (index > 0) {
+                      return ListTile(
+                        title: Text(list[index]['title']),
+                        subtitle: Text(list[index]['descripcion']),
+                      );
+                    }
+                    return ListTile(
+                      title: Text('Nada')
+                    );
+                  }
+                );
+              }
+            )
           )
         ],
       ),

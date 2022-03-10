@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1051825268627",
+    "project_id": "cholotodo-xxrtx",
+    "storage_bucket": "cholotodo-xxrtx.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1051825268627:android:e5543c73fa79a5ab29aa66",
+        "android_client_info": {
+          "package_name": "com.example.cholotodo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1051825268627-m8d00jcis84a5vsb49bq2ek8vaglah10.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDfO72guDli7krN5s23QHOgs0ly_cIppdY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1051825268627-m8d00jcis84a5vsb49bq2ek8vaglah10.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
