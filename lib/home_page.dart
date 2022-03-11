@@ -91,7 +91,7 @@ class _MyHomePageState extends State<MyHomePage> {
           Expanded(
             // child: _myListView(context),
             child: StreamBuilder<QuerySnapshot>(
-              stream: _fireStore.collection('items').snapshots(),
+              stream: _fireStore.collection('items').orderBy('timestamp', descending: false).snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   return Text('Has errors');
@@ -120,7 +120,9 @@ class _MyHomePageState extends State<MyHomePage> {
         String date = '';
         bool containsData = (item.data() as Map<String,dynamic>).containsKey('timestamp');
         if (containsData) {
-          date = item['timestamp'].toString();
+          // date = item['timestamp'].toString();
+          Timestamp tm = item['timestamp'];
+          date = tm.toDate().toString();
         } else {
           date = '';
         }
@@ -144,7 +146,6 @@ class _MyHomePageState extends State<MyHomePage> {
       }
     );
   }
-
 
   // TODO -  Convertir funcion en asincrona y esperar verdad o falso para continua operacion
   void _showAlertDialog(String documentId) {  // set up the buttons
